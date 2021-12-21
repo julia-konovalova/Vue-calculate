@@ -4,13 +4,60 @@
     <input
       type="number"
       placeholder="operand1"
+      id="input_operand1"
       v-model.lazy.number="operand1"
+      @click="activeOperand = 'operand1'"
     />
     <input
       type="number"
       placeholder="operand2"
+      id="input_operand2"
       v-model.lazy.number="operand2"
+      @click="activeOperand = 'operand2'"
     />
+
+    <br />
+    <div>
+      <div v-if="num_buttons_show === false">
+        <button @click="num_buttons_show = true">
+          Показать экранную клавиатуру
+        </button>
+      </div>
+      <div v-if="num_buttons_show === true">
+        <button @click="num_buttons_show = false">
+          Скрыть экранную клавиатуру
+        </button>
+      </div>
+    </div>
+    <div class="num_buttons" v-show="num_buttons_show">
+      <div class="radiobutton">
+        <input
+          type="radio"
+          id="radio-operand1"
+          value="Первое число"
+          v-model="picked"
+          @change="chooseOperand(picked)"
+        />
+        <label for="radio-operand1">Первое число</label>
+        <br />
+        <input
+          type="radio"
+          id="radio-operand2"
+          value="Второе число"
+          v-model="picked"
+          @change="chooseOperand(picked)"
+        />
+        <label for="radio-operand2">Второе число</label>
+        <br />
+      </div>
+      <button
+        v-for="(number, index) in numbers"
+        :key="index"
+        @click="inputNumbers(number)"
+      >
+        {{ number }}
+      </button>
+    </div>
     <br />
     <button
       v-for="(btn, index) in btns"
@@ -18,6 +65,9 @@
       @click="calculate(btn)"
       :disabled="operand1 === '' || operand2 === ''"
     >
+      {{ btn }}
+    </button>
+    <button v-for="(btn, index) in clearBtns" :key="index" @click="clear(btn)">
       {{ btn }}
     </button>
 
@@ -30,6 +80,8 @@
     <div v-show="error === ''">
       <p>Результат:</p>
       {{ result }}
+      <br />
+      <!-- {{ resultFib }} -->
     </div>
 
     <div class="start-message">
@@ -37,11 +89,7 @@
       <template v-else-if="result <= 100">Результат в первой сотне</template>
       <template v-else>Результат больше 100</template>
     </div>
-    <div class="list">
-      <div v-for="(item, index) in myColletion" :key="index">
-        {{ item }} - {{ index }}
-      </div>
-    </div>
+
     <br />
     <div class="logsList">
       <div class="logItem" v-for="(item, id) in logs" :key="id">
@@ -60,19 +108,47 @@ export default {
   data() {
     return {
       message: "Введите два числа",
-      result: 0,
+      result: "",
+      // resultFib: 0,
       operand1: "",
       operand2: "",
       error: "",
       btns: ["+", "-", "*", "/", "^", "int /"],
-      myColletion: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      clearBtns: ["<-", "C"],
+      numbers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      activeOperand: "",
       logs: {},
+      picked: "",
+      num_buttons_show: false,
     };
   },
   methods: {
+    chooseOperand(picked) {
+      if (picked === "Первое число") {
+        this.activeOperand = "operand1";
+      } else {
+        this.activeOperand = "operand2";
+      }
+    },
+
+    inputNumbers(number) {
+      if (this.activeOperand === "operand1") {
+        this.operand1 += number;
+      } else {
+        this.operand2 += number;
+      }
+    },
+
+    // fib(n) {
+    //   return n <= 1 ? n : this.fib(n - 1) + this.fib(n - 2);
+    // },
     calculate(operation = "+") {
       this.error = "";
       this.result = "";
+
+      this.operand1 = parseInt(this.operand1);
+      this.operand2 = parseInt(this.operand2);
+
       switch (operation) {
         case "+":
           this.add();
@@ -104,8 +180,20 @@ export default {
       this.$set(this.logs, key, value);
       // this.logs[ Date.now()] = `${this.operand1}${operation}${this.operand2} = ${this.result}`;
     },
+
+    clear(operation = "") {
+      switch (operation) {
+        case "<-":
+          this.backspace();
+          break;
+        case "C":
+          this.clearAll();
+          break;
+      }
+    },
     add() {
       this.result = this.operand1 + this.operand2;
+      // this.resultFib = this.fib1 + this.fib2;
     },
     substract() {
       this.result = this.operand1 - this.operand2;
@@ -132,6 +220,28 @@ export default {
       }
       this.result = parseInt(this.operand1 / this.operand2);
     },
+    backspace() {
+      if (this.activeOperand === "operand1") {
+        let arrayOfDigits = Array.from(String(this.operand1), Number);
+        arrayOfDigits.splice(-1, 1);
+        this.operand1 = arrayOfDigits.join("");
+      } else {
+        let arrayOfDigits = Array.from(String(this.operand2), Number);
+        arrayOfDigits.splice(-1, 1);
+        this.operand2 = arrayOfDigits.join("");
+      }
+    },
+    clearAll() {
+      (this.operand1 = ""), (this.operand2 = ""), (this.result = "");
+    },
+  },
+  computed: {
+    // fib1() {
+    //   return this.fib(this.operand1);
+    // },
+    // fib2() {
+    //   return this.fib(this.operand2);
+    // },
   },
 };
 </script>
